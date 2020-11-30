@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8445226402345612373}
   - component: {fileID: 8445226402345612375}
-  - component: {fileID: 8445226402345612372}
   - component: {fileID: 2622283287899022742}
   m_Layer: 0
   m_Name: eyesOnly Visualizer
@@ -46,20 +45,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_DestroyOnRemoval: 1
---- !u!114 &8445226402345612372
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8445226402345612378}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2548a2856c1ee4103848bf2b4440e3f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_EyePrefab: {fileID: 6696638613615050577, guid: c6f99b25464fa46bb9491ee412fa5d58,
-    type: 3}
 --- !u!114 &2622283287899022742
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -72,3 +57,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55aa4168219e54455bd510cfff95a81c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ipAddress: 10.0.39.242
+  udpPort: 12345
+  oscTXdelta: 0.0333
+  m_EyePrefab: {fileID: 6696638613615050577, guid: c6f99b25464fa46bb9491ee412fa5d58,
+    type: 3}

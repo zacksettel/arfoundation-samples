@@ -6,6 +6,7 @@ using UnityEngine.XR.ARSubsystems;
 #if UNITY_IOS && !UNITY_EDITOR
 using UnityEngine.XR.ARKit;
 #endif
+using OscJack;
 
 namespace UnityEngine.XR.ARFoundation.Samples
 {
@@ -18,6 +19,12 @@ namespace UnityEngine.XR.ARFoundation.Samples
     [RequireComponent(typeof(ARFace))]
     public class eyesOnlyVisualizer : MonoBehaviour
     {
+
+        [SerializeField] private string ipAddress = "localhost";
+        [SerializeField] private int udpPort = 12345;
+        [SerializeField] private float oscTXdelta = 0.0333f; // osc TX sending rate   
+        private OscClient _client;
+
         [SerializeField]
         GameObject m_EyePrefab;
 
@@ -33,23 +40,78 @@ namespace UnityEngine.XR.ARFoundation.Samples
         ARFace m_Face;
         XRFaceSubsystem m_FaceSubsystem;
 
+        private string deviceName; 
+
         void Awake()
         {
+            string rawstring;
             m_Face = GetComponent<ARFace>();
+            rawstring = SystemInfo.deviceName;
+            deviceName = rawstring.Replace(' ', '_');
+
+            guiHelper.onIPconnectDelegate += connectToOscServer;
         }
+
+        private void Start()
+        {
+            connectToOscServer();
+        }
+
+
+
+        void connectToOscServer()
+        {
+            ipAddress = guiHelper.ipAddress;
+
+            Debug.Log($"{GetType()}: connectToOscServer(): Connecting with: ip:{ipAddress}:{udpPort}");
+
+            if (_client != null)
+            {
+                _client.Dispose();
+            }
+
+            _client = OscMaster.GetSharedClient(ipAddress, udpPort);
+        }
+
+
+        float lastTXtime = 0f;
+
+
+            
 
         private void Update()
         {
-            if (m_RightEyeGameObject)
-                Debug.Log($"zeye pos: {m_RightEyeGameObject.transform.position} rot: {transform.localRotation.eulerAngles}");
-            else Debug.Log("eye Null");
+            if (_client == null) return;
+
+            if (Time.realtimeSinceStartup - lastTXtime < oscTXdelta) return;
+
+            lastTXtime = Time.realtimeSinceStartup;
+
+            string oscAddr = "/client/"+ deviceName+"/face";
+
             if (m_Face)
             {
-                Vector3 pos, rot;
-                pos = m_Face.transform.position;
-                rot = m_Face.transform.localEulerAngles;
+                Vector3 pos = m_Face.transform.localPosition;
+                Vector3 eulers = m_Face.transform.localEulerAngles;
+                _client.Send(oscAddr + "/position", pos.x, pos.y, pos.z);
+                _client.Send(oscAddr + "/eulers", eulers.x, eulers.y, eulers.z);
+            }
 
-                Debug.Log($"zface: pos: {pos} rot: {rot}");
+            if (m_LeftEyeGameObject)
+            {
+                Vector3 pos = m_LeftEyeGameObject.transform.localPosition;
+                Vector3 eulers = m_LeftEyeGameObject.transform.localEulerAngles;
+                _client.Send(oscAddr + "/leftEye/position", pos.x, pos.y, pos.z);
+                _client.Send(oscAddr + "/leftEye/eulers", eulers.x, eulers.y, eulers.z);
+            }
+
+            if (m_RightEyeGameObject)
+            {
+                Vector3 pos = m_RightEyeGameObject.transform.localPosition;
+                Vector3 eulers = m_RightEyeGameObject.transform.localEulerAngles;
+                _client.Send(oscAddr + "/rightEye/position", pos.x, pos.y, pos.z);
+                _client.Send(oscAddr + "/rightEye/eulers", eulers.x, eulers.y, eulers.z);
+                //Debug.Log($"zeye pos: {m_RightEyeGameObject.transform.position} rot: {transform.localRotation.eulerAngles}");
             }
         }
 
