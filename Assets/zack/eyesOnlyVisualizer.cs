@@ -87,12 +87,17 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
             lastTXtime = Time.realtimeSinceStartup;
 
-            string oscAddr = "/client/"+ deviceName+"/face";
+            string oscAddr = "/kinectAzure/"+ deviceName+"/face";
 
             if (m_Face)
             {
-                Vector3 pos = m_Face.transform.localPosition;
-                Vector3 eulers = m_Face.transform.localEulerAngles;
+                Vector3 cameraPos = Camera.current.transform.position;
+                Vector3 pos = cameraPos - m_Face.transform.position;
+
+                Quaternion rotDiff = Quaternion.Inverse(Camera.current.transform.rotation) * m_Face.transform.rotation ;
+
+                Vector3 eulers = rotDiff.eulerAngles;
+
                 _client.Send(oscAddr + "/position", pos.x, pos.y, pos.z);
                 _client.Send(oscAddr + "/eulers", eulers.x, eulers.y, eulers.z);
             }
