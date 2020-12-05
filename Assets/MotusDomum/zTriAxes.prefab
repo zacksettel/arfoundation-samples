@@ -11,11 +11,9 @@ GameObject:
   - component: {fileID: 4940852310305428}
   - component: {fileID: 114113636911863978}
   - component: {fileID: 2870436859151752103}
-  - component: {fileID: 75689719275373058}
   - component: {fileID: 8331342214353681591}
-  - component: {fileID: 8907187589037179262}
   - component: {fileID: 60114158559661144}
-  - component: {fileID: 4782400062201328161}
+  - component: {fileID: 843015444527532256}
   m_Layer: 0
   m_Name: zTriAxes
   m_TagString: Untagged
@@ -71,24 +69,6 @@ MonoBehaviour:
   _dataSource: {fileID: 4940852310305428}
   _propertyName: position
   _keepSending: 1
---- !u!114 &75689719275373058
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1362899771367802}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e43cc78b62f2184d8bebe41bd574f9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _ipAddress: 192.168.0.99
-  _udpPort: 54321
-  _oscAddress: /face/localPosition
-  _dataSource: {fileID: 4940852310305428}
-  _propertyName: localPosition
-  _keepSending: 1
 --- !u!114 &8331342214353681591
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -107,24 +87,6 @@ MonoBehaviour:
   _dataSource: {fileID: 4940852310305428}
   _propertyName: eulerAngles
   _keepSending: 1
---- !u!114 &8907187589037179262
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1362899771367802}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e43cc78b62f2184d8bebe41bd574f9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _ipAddress: 192.168.0.99
-  _udpPort: 54321
-  _oscAddress: /face/localEulers
-  _dataSource: {fileID: 4940852310305428}
-  _propertyName: localEulerAngles
-  _keepSending: 1
 --- !u!114 &60114158559661144
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,7 +99,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b069e436016f34978a675f749634cb1f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &4782400062201328161
+  debug: 0
+--- !u!114 &843015444527532256
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -146,14 +109,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1362899771367802}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53e9d0bb57f604047981989a03f447fc, type: 3}
+  m_Script: {fileID: 11500000, guid: 55aa4168219e54455bd510cfff95a81c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ipAddress: 192.168.0.99
+  udpPort: 54321
+  oscTXdelta: 0.0333
   m_EyePrefab: {fileID: 1956726250845337899, guid: ac67f480e15924fa1b0cde76c6c70ec0,
-    type: 3}
-  leftEyeOSCnode: {fileID: 9137720866544500736, guid: 39545cc5c1e5549dda57cf0d79803eb9,
-    type: 3}
-  rightEyeOSCnode: {fileID: 9137720866544500736, guid: 39545cc5c1e5549dda57cf0d79803eb9,
     type: 3}
 --- !u!1 &1544274209718308
 GameObject:

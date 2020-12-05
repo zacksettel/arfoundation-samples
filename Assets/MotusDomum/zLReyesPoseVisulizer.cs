@@ -22,10 +22,10 @@ namespace UnityEngine.XR.ARFoundation.Samples
         GameObject m_EyePrefab;
 
         [SerializeField]
-        GameObject leftEyeOSCnode;
+        GameObject leftEyeOSCnodePrefab;
 
         [SerializeField]
-        GameObject rightEyeOSCnode;
+        GameObject rightEyeOSCnodePrefab;
 
         public GameObject eyePrefab
         {
@@ -41,14 +41,14 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
         void Awake()
         {
-            if (!leftEyeOSCnode || !rightEyeOSCnode)
+            if (!leftEyeOSCnodePrefab || !rightEyeOSCnodePrefab)
             {
                 Debug.LogError($"{GetType()}: Missing OSC Node Prefab, aborting");
                 Destroy(this);
                 return;
             }
 
-            if (!leftEyeOSCnode.GetComponent<OscJack.OscPropertySender>() || !rightEyeOSCnode.GetComponent<OscJack.OscPropertySender>())
+            if (!leftEyeOSCnodePrefab.GetComponent<OscJack.OscPropertySender>() || !rightEyeOSCnodePrefab.GetComponent<OscJack.OscPropertySender>())
             {
                 Debug.LogError($"{GetType()}: OSC Node Prefab missing OscPropertySender, aborting");
                 Destroy(this);
@@ -66,13 +66,13 @@ namespace UnityEngine.XR.ARFoundation.Samples
                 m_LeftEyeGameObject = Instantiate(m_EyePrefab, m_Face.leftEye);
                 m_LeftEyeGameObject.SetActive(false);
 
-                GameObject gob = Instantiate(leftEyeOSCnode, m_LeftEyeGameObject.transform);
+                GameObject gob = Instantiate(leftEyeOSCnodePrefab, m_LeftEyeGameObject.transform);
             }
             if (m_Face.rightEye != null && m_RightEyeGameObject == null)
             {
                 m_RightEyeGameObject = Instantiate(m_EyePrefab, m_Face.rightEye);
                 m_RightEyeGameObject.SetActive(false);
-                GameObject gob = Instantiate(rightEyeOSCnode, m_RightEyeGameObject.transform);
+                GameObject gob = Instantiate(rightEyeOSCnodePrefab, m_RightEyeGameObject.transform);
             }
         }
 
