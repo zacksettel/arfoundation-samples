@@ -1,12 +1,19 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-#if UNITY_IOS && !UNITY_EDITOR
+using System;
+#if true
 using UnityEngine.XR.ARKit;
 #endif
 using OscJack;
+
+
+// #if UNITY_IOS && !UNITY_EDITOR
+
 
 namespace UnityEngine.XR.ARFoundation.Samples
 {
@@ -39,8 +46,9 @@ namespace UnityEngine.XR.ARFoundation.Samples
         GameObject m_RightEyeGameObject;
 
         ARFace m_Face;
-        XRFaceSubsystem m_FaceSubsystem;
+        //XRFaceSubsystem m_FaceSubsystem;
 
+        private string oscAddr;
 
         [SerializeField]
         float m_CoefficientScale = 100.0f;
@@ -67,7 +75,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
             }
         }
 
-#if UNITY_IOS && !UNITY_EDITOR
+#if true
         ARKitFaceSubsystem m_ARKitFaceSubsystem;
 
         Dictionary<ARKitBlendShapeLocation, int> m_FaceArkitBlendShapeIndexMap;
@@ -85,6 +93,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
             rawstring = SystemInfo.deviceName;
             deviceName = rawstring.Replace(' ', '_');
+            oscAddr = "/tracking/" + deviceName + "/face";
 
             guiHelper.onIPconnectDelegate += connectToOscServer;
         }
@@ -114,8 +123,6 @@ namespace UnityEngine.XR.ARFoundation.Samples
         }
 
 
-
-   
         void CreateFeatureBlendMapping()
         {
             if (skinnedMeshRenderer == null || skinnedMeshRenderer.sharedMesh == null)
@@ -123,7 +130,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
                 return;
             }
 
-#if UNITY_IOS && !UNITY_EDITOR
+#if true
             const string strPrefix = "blendShape2.";
             m_FaceArkitBlendShapeIndexMap = new Dictionary<ARKitBlendShapeLocation, int>();
 
@@ -193,7 +200,7 @@ namespace UnityEngine.XR.ARFoundation.Samples
 
             lastTXtime = Time.realtimeSinceStartup;
 
-            string oscAddr = "/tracking/"+ deviceName+"/face";
+            
 
             if (m_Face)
             {
@@ -228,6 +235,11 @@ namespace UnityEngine.XR.ARFoundation.Samples
             }
         }
 
+        void OnSystemStateChanged(ARSessionStateChangedEventArgs eventArgs)
+        {
+            UpdateVisibility();
+        }
+
         void CreateEyeGameObjectsIfNecessary()
         {
             if (m_Face.leftEye != null && m_LeftEyeGameObject == null)
@@ -249,17 +261,38 @@ namespace UnityEngine.XR.ARFoundation.Samples
                 m_LeftEyeGameObject.SetActive(visible);
                 m_RightEyeGameObject.SetActive(visible);
             }
+            if (skinnedMeshRenderer == null) return;
+
+            skinnedMeshRenderer.enabled = false; // visible;
+        }
+
+        void UpdateVisibility()
+        {
+            var visible =
+                enabled &&
+                (m_Face.trackingState == TrackingState.Tracking) &&
+                (ARSession.state > ARSessionState.Ready);
+
+            SetVisible(visible);
         }
 
 
         void OnEnable()
         {
+
             var faceManager = FindObjectOfType<ARFaceManager>();
-            if (faceManager != null && faceManager.subsystem != null && faceManager.descriptor.supportsEyeTracking)
+            if (faceManager != null && faceManager.descriptor.supportsEyeTracking)
             {
-                m_FaceSubsystem = (XRFaceSubsystem)faceManager.subsystem;
-                SetVisible((m_Face.trackingState == TrackingState.Tracking) && (ARSession.state > ARSessionState.Ready));
+                m_ARKitFaceSubsystem = (ARKitFaceSubsystem)faceManager.subsystem;
+
+                //m_FaceSubsystem = (XRFaceSubsystem)faceManager.subsystem;
+                //SetVisible((m_Face.trackingState == TrackingState.Tracking) && (ARSession.state > ARSessionState.Ready));
+
+                UpdateVisibility();
+
                 m_Face.updated += OnUpdated;
+                ARSession.stateChanged += OnSystemStateChanged;
+
             }
             else
             {
@@ -270,14 +303,69 @@ namespace UnityEngine.XR.ARFoundation.Samples
         void OnDisable()
         {
             m_Face.updated -= OnUpdated;
+            ARSession.stateChanged -= OnSystemStateChanged;
             SetVisible(false);
         }
 
         void OnUpdated(ARFaceUpdatedEventArgs eventArgs)
         {
             CreateEyeGameObjectsIfNecessary();
-            SetVisible((m_Face.trackingState == TrackingState.Tracking) && (ARSession.state > ARSessionState.Ready));
-           // if (eventArgs.Equals(ARFaceManager))
+            //SetVisible((m_Face.trackingState == TrackingState.Tracking) && (ARSession.state > ARSessionState.Ready));
+            UpdateVisibility();
+            UpdateFaceFeatures();
+            // if (eventArgs.Equals(ARFaceManager))
+        }
+
+
+
+
+
+
+    void UpdateFaceFeatures()
+        {
+            if (skinnedMeshRenderer == null || skinnedMeshRenderer.sharedMesh == null)
+                //if (skinnedMeshRenderer == null || !skinnedMeshRenderer.enabled || skinnedMeshRenderer.sharedMesh == null)
+            {
+                return;
+            }
+
+            if (_client == null) return;
+
+#if true
+            using (var blendShapes = m_ARKitFaceSubsystem.GetBlendShapeCoefficients(m_Face.trackableId, Allocator.Temp))
+            {
+                foreach (var featureCoefficient in blendShapes)
+                {
+                    int mappedBlendShapeIndex;
+                    if (m_FaceArkitBlendShapeIndexMap.TryGetValue(featureCoefficient.blendShapeLocation, out mappedBlendShapeIndex))
+                    {
+                        if (featureCoefficient.blendShapeLocation == ARKitBlendShapeLocation.EyeBlinkLeft)
+                        {
+                            //Debug.Log($"BLENDSHAPE: item: {featureCoefficient.blendShapeLocation} == {ARKitBlendShapeLocation.EyeBlinkLeft} value = {featureCoefficient.coefficient} ");
+                            _client.Send(oscAddr + "/eyeBlinkLeft", featureCoefficient.coefficient);
+                        }
+                        else if (featureCoefficient.blendShapeLocation == ARKitBlendShapeLocation.EyeBlinkRight)
+                        {
+                            //Debug.Log($"BLENDSHAPE: item: {featureCoefficient.blendShapeLocation} == {ARKitBlendShapeLocation.EyeBlinkRight} value = {featureCoefficient.coefficient} ");
+                            _client.Send(oscAddr + "/eyeBlinkRight", featureCoefficient.coefficient);
+                        }
+                        else if (featureCoefficient.blendShapeLocation == ARKitBlendShapeLocation.MouthClose)
+                        {
+                            //Debug.Log($"BLENDSHAPE: item: {featureCoefficient.blendShapeLocation} == {ARKitBlendShapeLocation.MouthClose} value = {featureCoefficient.coefficient} ");
+                            float value = featureCoefficient.coefficient * 5;
+                            value = Mathf.Clamp01(value);
+
+                            _client.Send(oscAddr + "/mouthClosed", value);
+                        }
+
+                        //if (false) //mappedBlendShapeIndex >= 0)
+                        //{
+                        //    skinnedMeshRenderer.SetBlendShapeWeight(mappedBlendShapeIndex, featureCoefficient.coefficient * coefficientScale);
+                        //}
+                    }
+                }
+            }
+#endif
         }
     }
 }
